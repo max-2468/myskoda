@@ -610,7 +610,7 @@ class MySkoda:
     async def set_preferred_charging_times(
             self,
             vin: Vin,
-            location: str,
+            charging_profile_id: int,
             times: ChargingTimes
         ) -> None:
         """Update the proferred charging time of the vehicle at the location."""
@@ -620,7 +620,7 @@ class MySkoda:
         #find the correct charging times and replace it
         for charging_profile in profiles.charging_profiles:
                 if (
-                    charging_profile.name == location
+                    charging_profile.id == charging_profile_id
                 ):
                     for idx, charging_time in enumerate(charging_profile.preferred_charging_times):
                         if (

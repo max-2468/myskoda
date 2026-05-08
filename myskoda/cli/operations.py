@@ -541,12 +541,12 @@ async def set_preferred_charging(  # noqa: PLR0913, C901
         return
 
     async with asyncio.timeout(timeout):
-        #Get the complete charging profiles first
-        all_profiles: ChargingProfiles = await myskoda.get_charging_profiles(vin)
-
-        #Find the relevant charging time profile then update as necessary, and send it back.
+        #Find the relevant charging time in the profile identified by its name
+        #then update as necessary, and send the complete profile back to the servers.
         #To allow the command to be called with only the necessary parameters we have to get the
         #complete data from the servers here as well
+        all_profiles: ChargingProfiles = await myskoda.get_charging_profiles(vin)
+
         if all_profiles is None:
              print("No Charging profiles found for the given VIN")
              return
@@ -574,13 +574,17 @@ async def set_preferred_charging(  # noqa: PLR0913, C901
                 selected_charging_times.enabled= enabled
             if start is not None:
                 try:
-                    #it is assumed that the car will always use it's local time,
-                    #so timezone information is not relevant
+                    #The server data does not provide timezone information, which is
+                    #also not editable in the app or the car itself.
+                    #Therefore do not handle timezones her, but expect and enforce a format similar
+                    #to what is editable in the app or in the car.
                     parsed_start = datetime.strptime(start, "%H:%M")  # noqa: DTZ007
                     if parsed_start is not None:
                         selected_charging_times.start_time = parsed_start.time()
                 except ValueError:
                     print(f"Invalid start time {start}, expected HH:MM format.")
+                    return
+
             if end is not None:
                 try:
                     #see above, assume the car only uses local time
@@ -589,9 +593,10 @@ async def set_preferred_charging(  # noqa: PLR0913, C901
                         selected_charging_times.start_time = parsed_start.time()
                 except ValueError:
                     print(f"Invalid end time {end}, expected HH:MM format.")
+                    return
 
             await myskoda.set_preferred_charging_times(
-                vin, location, selected_charging_times
+                vin, selected_location.id, selected_charging_times
             )
         else:
             print(f"Charging times with ID {charging_times_id} not found.")

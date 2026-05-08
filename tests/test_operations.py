@@ -907,12 +907,12 @@ async def test_set_preferred_charging(  # noqa: PLR0913
         url = f"https://mysmob.api.connect.skoda-auto.cz/api/v1/charging/{target_vin}/profiles/1"
         responses.put(url=url)
 
-        location = charging_profile_json["currentVehiclePositionProfile"]["name"]
+        location_id = charging_profile_json["currentVehiclePositionProfile"]["id"]
         start_time = datetime.strptime(start, "%H:%M").time() #noqa: DTZ007
         end_time = datetime.strptime(end, "%H:%M").time() #noqa: DTZ007
         charging_times = ChargingTimes(timer_id, enabled, start_time, end_time)
 
-        future = myskoda.set_preferred_charging_times(target_vin, location, charging_times)
+        future = myskoda.set_preferred_charging_times(target_vin, location_id, charging_times)
 
         topic = f"{USER_ID}/{VIN}/operation-request/charging/update-charging-profiles"
         fake_mqtt_client_wrapper.set_messages(
